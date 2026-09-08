@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Осінній врожай з Ліло і Стічем: Величини та дії (5 клас)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #d97706, #f59e0b, #fef3c7);
+            min-height: 100vh;
+        }
+        h1, h2, h3, .font-title {
+            font-family: 'Fredoka', cursive;
+        }
+        .autumn-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 4px solid #f59e0b;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .pulse- pumpkin {
+            animation: bounce 2s infinite;
+        }
+        /* Точна сітка 12 на 12 великих клітинок (40px * 12 = 480px) */
+        .math-grid-container {
+            background-color: #fffef9;
+            background-image: 
+                linear-gradient(to right, rgba(217, 119, 6, 0.25) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(217, 119, 6, 0.25) 1px, transparent 1px);
+            background-size: 40px 40px;
+            border: 3px solid #f59e0b;
+            border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+            width: 480px;
+            height: 480px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .draw-canvas {
+            cursor: crosshair;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .zoom-canvas {
+            cursor: crosshair;
+            display: block;
+            width: 100%;
+            height: 480px;
+        }
+        .dialogue-bubble-lilo {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 20px 20px 20px 4px;
+            padding: 10px 16px;
+        }
+        .dialogue-bubble-stitch {
+            background: #ffedd5;
+            border: 2px solid #ea580c;
+            border-radius: 20px 20px 4px 20px;
+            padding: 10px 16px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 p-4 lg:p-6">
+
+    <div id="app" class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white/90 backdrop-blur px-6 py-4 rounded-3xl shadow-lg border-2 border-amber-400 gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-4xl">🎃</span>
+                <div>
+                    <h1 class="text-2xl lg:text-3xl font-extrabold text-amber-900">
+                        Осінній врожай з Ліло і Стічем
+                    </h1>
+                    <p class="text-slate-600 text-xs lg:text-sm">
+                        Збір овочів, гарбузи 🎃, сітка 12×12 та гарбузове перо 🍂 (5 клас)
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="bg-amber-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm border border-amber-600 shadow-sm">
+                    🌾 Охана
+                </span>
+                <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1.5 rounded-xl text-sm border border-emerald-300">
+                    ⭐ Бали: <span id="score-val">0</span>
+                </span>
+                <span class="bg-orange-100 text-orange-800 font-bold px-3 py-1.5 rounded-xl text-sm border border-orange-300">
+                    🥕 Блок: <span id="current-block-num">1</span> / 5
+                </span>
+            </div>
+        </header>
+
+        <!-- Progress Tracker Bar / Dialogue -->
+        <div class="autumn-card rounded-2xl p-4 mb-6 flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg shadow" id="level-badge">1</div>
+                    <div>
+                        <h3 class="font-bold text-base text-amber-950" id="level-title">Блок 1: Повторення — Розряди чисел</h3>
+                        <p class="text-xs text-slate-600" id="level-desc">Згадуємо розряди перед збором великого врожаю</p>
+                    </div>
+                </div>
+                <div class="text-xs lg:text-sm font-semibold text-slate-700 bg-amber-50 px-4 py-2 rounded-xl border border-amber-200" id="stitch-tip">
+                    «Полотно 12 на 12 клітинок та гарбузове перо 🍂 готові!»
+                </div>
+            </div>
+
+            <div id="block-dialogue" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-amber-200">
+                <div class="flex items-start gap-2.5">
+                    <span class="text-2xl">👧🏽</span>
+                    <div class="dialogue-bubble-lilo text-xs text-amber-950 font-medium">
+                        <strong>Ліло:</strong> «Осінь прийшла на острів! Повторимо розряди числа 745 632 перед збором гарбузів!»
+                    </div>
+                </div>
+                <div class="flex items-start justify-end gap-2.5">
+                    <div class="dialogue-bubble-stitch text-xs text-orange-950 font-medium text-right">
+                        <strong>Стіч:</strong> «Іха! Будемо збирати овочі, рахувати кілограми і писати у сітці 12×12 гарбузовим пером!»
+                    </div>
+                    <span class="text-2xl">👽</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="autumn-card rounded-3xl p-6 lg:p-8 mb-6">
+            <div id="block-container"></div>
+
+            <div class="flex justify-between items-center mt-8 pt-6 border-t border-slate-200">
+                <button id="prev-btn" onclick="prevBlock()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-2.5 rounded-2xl transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    ⬅️ Назад
+                </button>
+                <div id="feedback-msg" class="font-bold text-center text-sm"></div>
+                <button id="next-btn" onclick="nextBlock()" class="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold px-6 py-2.5 rounded-2xl shadow-lg transition flex items-center gap-2">
+                    Наступний блок ➡️
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Notification -->
+    <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-amber-500 text-center">
+            <div id="modal-icon" class="text-5xl mb-3">🎃</div>
+            <h3 id="modal-title" class="text-2xl font-bold text-slate-800 mb-2">Чудова робота!</h3>
+            <p id="modal-text" class="text-slate-600 mb-6">Ти успішно впорався із цим завданням.</p>
+            <button onclick="closeModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-2xl shadow transition w-full">
+                Продовжити збір врожаю!
+            </button>
+        </div>
+    </div>
+
+    <!-- Zoom Modal -->
+    <div id="zoom-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 max-w-4xl w-full shadow-2xl border-4 border-amber-500 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <h3 id="zoom-title" class="text-xl font-extrabold text-amber-900">🔍 Збільшений осінній блокнот (12×12)</h3>
+                <button onclick="closeZoomModal()" class="bg-rose-500 text-white font-bold px-4 py-1.5 rounded-xl text-sm shadow hover:bg-rose-600 transition">✕ Закрити</button>
+            </div>
+            <div id="zoom-content" class="flex-1 overflow-y-auto space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentBlock = 1;
+        let score = 0;
+
+        const blocks = [
+            { 
+                id: 1, 
+                title: "Блок 1: Повторення — Розряди чисел", 
+                desc: "Згадуємо розряди числа 745 632 перед збором гарбузів", 
+                tip: "Вводь цифри у розряди та перевіряй результат!",
+                liloText: "«Осінь на острові! Повторимо розряди числа 745 632, щоб сховати гарбузи у комору!»",
+                stitchText: "«Стіч рахує всі розряди осінніх гарбузів!»"
+            },
+            { 
+                id: 2, 
+                title: "Блок 2: Переведення величин (Завдання 55, 58)", 
+                desc: "Перетворюємо сантиметри, метри, кілограми, центнери, тонни та час", 
+                tip: "Заповнюй пропуски для переведення одиниць вимірювання врожаю.",
+                liloText: "«Скільки грамів у кілограмі гарбузів? Перевіримо твої знання!»",
+                stitchText: "«Іха! Перетворюємо центнери та тонни разом зі Стічем!»"
+            },
+            { 
+                id: 3, 
+                title: "Блок 3: Приклади та дії з величинами (Завдання 65)", 
+                desc: "Додавання, віднімання та множення величин у зошиті 12×12", 
+                tip: "Використовуй лупу 🔍 для розв'язання прикладів гарбузовим пером 🍂 у сітці 12×12.",
+                liloText: "«Додаємо і віднімаємо кілограми гарбузів та години роботи на городі!»",
+                stitchText: "«Обчислюємо масу врожаю швидко і точно гарбузовим пером!»"
+            },
+            { 
+                id: 4, 
+                title: "Блок 4: Порівняння величин (Завдання 63, 64)", 
+                desc: "Порівнюємо масу гарбузів, довжину грядок та час (<, >, =)", 
+                tip: "Зводь величини до однакових одиниць та став правильний знак.",
+                liloText: "«Порівняймо масу великого гарбуза та кабачків!»",
+                stitchText: "«Стіч завжди обирає ту гору овочів, яка більша!»"
+            },
+            { 
+                id: 5, 
+                title: "Блок 5: Осінні задачі (Завдання 61, 72)", 
+                desc: "Розв'язуємо життєві задачі про мішки картоплі та збір осіннього врожаю", 
+                tip: "Натискай 🔍 збільшення для зручного розв'язку задач у полі 12×12.",
+                liloText: "«Це практичні задачі про збір гарбузів та картоплі в нашому осінньому таборі!»",
+                stitchText: "«Порахуємо мішки картоплі та гарбузи разом!»"
+            }
+        ];
+
+        function initApp() {
+            renderBlock();
+            updateHeader();
+        }
+
+        function updateHeader() {
+            const b = blocks[currentBlock - 1];
+            document.getElementById('level-badge').innerText = currentBlock;
+            document.getElementById('level-title').innerText = b.title;
+            document.getElementById('level-desc').innerText = b.desc;
+            document.getElementById('stitch-tip').innerText = `«${b.tip}»`;
+            document.getElementById('current-block-num').innerText = currentBlock;
+            document.getElementById('score-val').innerText = score;
+
+            document.getElementById('block-dialogue').innerHTML = `
+                <div class="flex items-start gap-2.5">
+                    <span class="text-2xl">👧🏽</span>
+                    <div class="dialogue-bubble-lilo text-xs text-amber-950 font-medium">
+                        <strong>Ліло:</strong> ${b.liloText}
+                    </div>
+                </div>
+                <div class="flex items-start justify-end gap-2.5">
+                    <div class="dialogue-bubble-stitch text-xs text-orange-950 font-medium text-right">
+                        <strong>Стіч:</strong> ${b.stitchText}
+                    </div>
+                    <span class="text-2xl">👽</span>
+                </div>
+            `;
+
+            document.getElementById('prev-btn').disabled = currentBlock === 1;
+            document.getElementById('next-btn').innerText = currentBlock === 5 ? "Фінішний звіт 🏆" : "Наступний блок ➡️";
+        }
+
+        let isDrawing = false;
+        let currentTool = 'pen';
+
+        function initCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = 480;
+            canvas.height = 480;
+
+            ctx.strokeStyle = '#7c2d12'; // осінній колір чорнила
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            function startPosition(e) { isDrawing = true; draw(e); }
+            function endPosition() { isDrawing = false; ctx.beginPath(); }
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                if (!clientX || !clientY) return;
+
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                if (currentTool === 'eraser') {
+                    ctx.clearRect(x - 20, y - 20, 40, 40);
+                } else {
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                }
+            }
+
+            canvas.onmousedown = startPosition;
+            canvas.onmouseup = endPosition;
+            canvas.onmousemove = draw;
+            canvas.onmouseleave = endPosition;
+            canvas.ontouchstart = startPosition;
+            canvas.ontouchend = endPosition;
+            canvas.ontouchmove = draw;
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            const penBtn = document.getElementById('pen-tool-btn');
+            const eraserBtn = document.getElementById('eraser-tool-btn');
+            const zoomPenBtn = document.getElementById('zoom-pen-tool-btn');
+            const zoomEraserBtn = document.getElementById('zoom-eraser-tool-btn');
+            
+            [penBtn, zoomPenBtn].forEach(b => { if(b) b.className = tool === 'pen' ? "bg-amber-700 text-white font-bold px-3.5 py-1.5 rounded-lg shadow text-xs transition" : "bg-white text-slate-700 border border-slate-300 font-bold px-3.5 py-1.5 rounded-lg shadow text-xs transition"; });
+            [eraserBtn, zoomEraserBtn].forEach(b => { if(b) b.className = tool === 'eraser' ? "bg-amber-700 text-white font-bold px-3.5 py-1.5 rounded-lg shadow text-xs transition" : "bg-white text-slate-700 border border-slate-300 font-bold px-3.5 py-1.5 rounded-lg shadow text-xs transition"; });
+        }
+
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function openZoom(title, mathExpression, inputId) {
+            const zoomModal = document.getElementById('zoom-modal');
+            const zoomTitle = document.getElementById('zoom-title');
+            const zoomContent = document.getElementById('zoom-content');
+
+            zoomTitle.innerText = `🔍 Велике осіннє поле 12×12: ${title}`;
+            const val = document.getElementById(inputId) ? document.getElementById(inputId).value : '';
+
+            zoomContent.innerHTML = `
+                <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-300 flex flex-col space-y-4 items-center">
+                    <div class="flex justify-between items-center w-full">
+                        <span class="font-extrabold text-lg text-slate-800">Завдання: ${mathExpression}</span>
+                        <div class="flex items-center gap-2">
+                            <label class="font-bold text-sm text-slate-700">Відповідь:</label>
+                            <input type="text" id="zoom_ans_input" value="${val}" oninput="syncInput('${inputId}', this.value)" class="p-2 rounded-xl border border-slate-300 font-bold text-lg w-36 text-center bg-white" placeholder="Відповідь">
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 rounded-2xl math-grid-container shadow-inner bg-[#fffef9]">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-amber-900">📝 Поле 12×12 (Гарбузове перо 🍂):</span>
+                            <div class="flex gap-2">
+                                <button id="zoom-pen-tool-btn" onclick="setTool('pen')" class="bg-amber-700 text-white font-bold px-3 py-1 rounded-lg text-xs shadow">🍂 Гарбузове перо</button>
+                                <button id="zoom-eraser-tool-btn" onclick="setTool('eraser')" class="bg-white text-slate-700 border border-slate-300 font-bold px-3 py-1 rounded-lg text-xs shadow">🧹 Гумка</button>
+                                <button onclick="clearCanvas('zoom_canvas_elem')" class="text-xs bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-1 rounded-lg shadow transition">Очистити</button>
+                            </div>
+                        </div>
+                        <canvas id="zoom_canvas_elem" class="zoom-canvas rounded-xl bg-transparent"></canvas>
+                    </div>
+
+                    <button onclick="closeZoomModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl text-center shadow transition w-full">
+                        💾 Зберегти і повернутися до уроку
+                    </button>
+                </div>
+            `;
+
+            zoomModal.classList.remove('hidden');
+            zoomModal.classList.add('flex');
+            setTimeout(() => initCanvas('zoom_canvas_elem'), 50);
+        }
+
+        function syncInput(targetId, val) {
+            const target = document.getElementById(targetId);
+            if (target) target.value = val;
+        }
+
+        function closeZoomModal() {
+            document.getElementById('zoom-modal').classList.remove('flex');
+            document.getElementById('zoom-modal').classList.add('hidden');
+        }
+
+        function renderGridNotebook(canvasId, title = "Місце для розв'язку (12×12):") {
+            setTimeout(() => initCanvas(canvasId), 50);
+            return `
+                <div class="mt-3 p-2.5 rounded-2xl math-grid-container shadow-inner flex flex-col items-center">
+                    <div class="flex justify-between items-center mb-1 w-full">
+                        <span class="text-xs font-bold text-amber-900">📝 ${title}</span>
+                        <div class="flex gap-1.5">
+                            <button id="pen-tool-btn" onclick="setTool('pen')" class="bg-amber-700 text-white font-bold px-2.5 py-1 rounded text-xs shadow">🍂 Гарбузове перо</button>
+                            <button id="eraser-tool-btn" onclick="setTool('eraser')" class="bg-white text-slate-700 border border-slate-300 font-bold px-2.5 py-1 rounded text-xs shadow">🧹 Гумка</button>
+                            <button onclick="clearCanvas('${canvasId}')" class="text-xs bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded shadow transition">Очистити</button>
+                        </div>
+                    </div>
+                    <canvas id="${canvasId}" class="draw-canvas rounded-xl bg-transparent"></canvas>
+                </div>
+            `;
+        }
+
+        function renderBlock() {
+            const container = document.getElementById('block-container');
+            let html = '';
+
+            if (currentBlock === 1) {
+                // Блок 1: Повторення розрядів чисел
+                html = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-amber-50 border-2 border-amber-300 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-bold text-amber-950 text-base">Повторення: Розряди числа 745 632</h4>
+                                    <span class="bg-amber-200 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full">+10 балів</span>
+                                </div>
+                                <p class="text-xs lg:text-sm text-amber-900 mb-3">Впиши цифри у відповідні розряди:</p>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
+                                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Десятків:</label>
+                                        <input type="number" id="b1_q1" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-center text-sm" placeholder="?">
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Сотень:</label>
+                                        <input type="number" id="b1_q2" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-center text-sm" placeholder="?">
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Дес. тисяч:</label>
+                                        <input type="number" id="b1_q3" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-center text-sm" placeholder="?">
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Сот. тисяч:</label>
+                                        <input type="number" id="b1_q4" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-center text-sm" placeholder="?">
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Од. тисяч:</label>
+                                        <input type="number" id="b1_q5" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-center text-sm" placeholder="?">
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-amber-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Одиниць:</label>
+                                        <input type="number" id="b1_q6" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-center text-sm" placeholder="?">
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="checkSubTask1()" class="bg-amber-700 hover:bg-amber-800 text-white font-bold px-5 py-2 rounded-xl text-sm shadow transition w-full">
+                                🔍 Перевірити розряди
+                            </button>
+                        </div>
+                        <div class="bg-orange-50 border-2 border-orange-300 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-orange-950 text-base mb-2">Сусіди числа 50 000</h4>
+                                <p class="text-xs text-orange-900 mb-3">Впиши сусідні значення:</p>
+                                <div class="grid grid-cols-2 gap-2.5 mb-4">
+                                    <div class="bg-white p-2.5 rounded-xl border border-orange-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Попереднє:</label>
+                                        <input type="number" id="b1_prev" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-sm" placeholder="Число">
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-orange-200 shadow-sm">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Наступне:</label>
+                                        <input type="number" id="b1_next" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-sm" placeholder="Число">
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="checkSubTask2()" class="bg-orange-700 hover:bg-orange-800 text-white font-bold px-5 py-2 rounded-xl text-sm shadow transition w-full">
+                                🔍 Перевірити сусідів
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (currentBlock === 2) {
+                // Блок 2: Переведення величин
+                html = `
+                    <div class="space-y-4">
+                        <div class="bg-amber-100 border-l-4 border-amber-600 p-3 rounded-r-2xl">
+                            <h4 class="font-bold text-amber-950 text-sm mb-0.5">Блок 2: Переведення одиниць вимірювання врожаю (Завдання 55, 58)</h4>
+                            <p class="text-xs text-amber-900">Заповніть пропуски відповідними числами.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3">
+                                <h5 class="font-bold text-amber-900 text-sm">Частина А (Довжина та маса)</h5>
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex items-center justify-between"><span class="font-bold">1) 5 см 3 мм = ... мм</span><input type="number" id="b2_1" class="p-1 rounded border w-24 text-center font-bold" placeholder="мм"></div>
+                                    <div class="flex items-center justify-between"><span class="font-bold">2) 2 м 3 см = ... см</span><input type="number" id="b2_2" class="p-1 rounded border w-24 text-center font-bold" placeholder="см"></div>
+                                    <div class="flex items-center justify-between"><span class="font-bold">3) 4 км 12 м = ... м</span><input type="number" id="b2_3" class="p-1 rounded border w-24 text-center font-bold" placeholder="м"></div>
+                                    <div class="flex items-center justify-between"><span class="font-bold">4) 1 кг 215 г = ... г</span><input type="number" id="b2_4" class="p-1 rounded border w-24 text-center font-bold" placeholder="г"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3">
+                                <h5 class="font-bold text-amber-900 text-sm">Частина Б (Центнери, тонни, час)</h5>
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex items-center justify-between"><span class="font-bold">5) 7 ц 18 кг = ... кг</span><input type="number" id="b2_5" class="p-1 rounded border w-24 text-center font-bold" placeholder="кг"></div>
+                                    <div class="flex items-center justify-between"><span class="font-bold">6) 9 т 37 кг = ... кг</span><input type="number" id="b2_6" class="p-1 rounded border w-24 text-center font-bold" placeholder="кг"></div>
+                                    <div class="flex items-center justify-between"><span class="font-bold">7) 2 хв 10 с = ... с</span><input type="number" id="b2_7" class="p-1 rounded border w-24 text-center font-bold" placeholder="с"></div>
+                                    <div class="flex items-center justify-between"><span class="font-bold">8) 2 год 3 хв = ... хв</span><input type="number" id="b2_8" class="p-1 rounded border w-24 text-center font-bold" placeholder="хв"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="checkUnitsBlock()" class="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 rounded-xl text-sm shadow transition">
+                            ✅ Перевірити переведення врожаю
+                        </button>
+                    </div>
+                `;
+            } else if (currentBlock === 3) {
+                // Блок 3: Приклади та дії з величинами
+                html = `
+                    <div class="space-y-4">
+                        <div class="bg-orange-100 border-l-4 border-orange-600 p-3 rounded-r-2xl">
+                            <h4 class="font-bold text-orange-950 text-sm mb-0.5">Блок 3: Обчислення врожаю (Завдання 65)</h4>
+                            <p class="text-xs text-orange-900">Натискай лупу 🔍 біля прикладу, щоб розв'язати його у великому полі 12×12 гарбузовим пером 🍂!</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Приклад 1 -->
+                            <div class="bg-white p-4 rounded-2xl border-2 border-orange-300 shadow-sm space-y-2 relative">
+                                <button onclick="openZoom('Приклад 1', '4 кг 150 г + 7 кг 270 г', 'b3_q1')" class="absolute top-3 right-3 bg-orange-100 text-orange-900 p-1.5 rounded-xl text-xs font-bold shadow">🔍 На весь екран</button>
+                                <h5 class="font-bold text-sm text-slate-800">1) 4 кг 150 г + 7 кг 270 г</h5>
+                                <input type="text" id="b3_q1" class="w-full p-2 rounded-xl border border-slate-300 font-bold text-center bg-orange-50/30 text-sm" placeholder="Відповідь (напр. 11 кг 420 г)">
+                                ${renderGridNotebook('canvas_b3_1', 'Осінній зошит 1')}
+                                <button onclick="checkEx(1)" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-2 rounded-xl text-xs shadow">Перевірити 1</button>
+                            </div>
+                            <!-- Приклад 2 -->
+                            <div class="bg-white p-4 rounded-2xl border-2 border-orange-300 shadow-sm space-y-2 relative">
+                                <button onclick="openZoom('Приклад 2', '8 м 12 см − 5 м 31 см', 'b3_q2')" class="absolute top-3 right-3 bg-orange-100 text-orange-900 p-1.5 rounded-xl text-xs font-bold shadow">🔍 На весь екран</button>
+                                <h5 class="font-bold text-sm text-slate-800">2) 8 м 12 см − 5 м 31 см</h5>
+                                <input type="text" id="b3_q2" class="w-full p-2 rounded-xl border border-slate-300 font-bold text-center bg-orange-50/30 text-sm" placeholder="Відповідь">
+                                ${renderGridNotebook('canvas_b3_2', 'Осінній зошит 2')}
+                                <button onclick="checkEx(2)" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-2 rounded-xl text-xs shadow">Перевірити 2</button>
+                            </div>
+                            <!-- Приклад 3 -->
+                            <div class="bg-white p-4 rounded-2xl border-2 border-orange-300 shadow-sm space-y-2 relative">
+                                <button onclick="openZoom('Приклад 3', '4 км 25 м : 5', 'b3_q3')" class="absolute top-3 right-3 bg-orange-100 text-orange-900 p-1.5 rounded-xl text-xs font-bold shadow">🔍 На весь екран</button>
+                                <h5 class="font-bold text-sm text-slate-800">3) 4 км 25 м : 5</h5>
+                                <input type="text" id="b3_q3" class="w-full p-2 rounded-xl border border-slate-300 font-bold text-center bg-orange-50/30 text-sm" placeholder="Відповідь">
+                                ${renderGridNotebook('canvas_b3_3', 'Осінній зошит 3')}
+                                <button onclick="checkEx(3)" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-2 rounded-xl text-xs shadow">Перевірити 3</button>
+                            </div>
+                            <!-- Приклад 4 -->
+                            <div class="bg-white p-4 rounded-2xl border-2 border-orange-300 shadow-sm space-y-2 relative">
+                                <button onclick="openZoom('Приклад 4', '2 см 3 мм · 4', 'b3_q4')" class="absolute top-3 right-3 bg-orange-100 text-orange-900 p-1.5 rounded-xl text-xs font-bold shadow">🔍 На весь екран</button>
+                                <h5 class="font-bold text-sm text-slate-800">4) 2 см 3 мм · 4</h5>
+                                <input type="text" id="b3_q4" class="w-full p-2 rounded-xl border border-slate-300 font-bold text-center bg-orange-50/30 text-sm" placeholder="Відповідь">
+                                ${renderGridNotebook('canvas_b3_4', 'Осінній зошит 4')}
+                                <button onclick="checkEx(4)" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-2 rounded-xl text-xs shadow">Перевірити 4</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentBlock === 4) {
+                // Блок 4: Порівняння величин
+                html = `
+                    <div class="space-y-4">
+                        <div class="bg-amber-100 border-l-4 border-amber-600 p-3 rounded-r-2xl">
+                            <h4 class="font-bold text-amber-950 text-sm mb-0.5">Блок 4: Порівняй величини врожаю (&lt;, &gt;, =) (Завдання 63)</h4>
+                            <p class="text-xs text-amber-900">Впиши правильний знак порівняння у кожне поле.</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div class="bg-white p-3 rounded-xl border border-amber-300 flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold">1) 5 см 2 мм ... 53 мм</span>
+                                <input type="text" id="b4_c1" maxlength="1" class="w-10 h-10 text-center font-bold text-lg border rounded-lg bg-amber-50" placeholder="?">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-300 flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold">2) 7 км 520 м ... 7052 м</span>
+                                <input type="text" id="b4_c2" maxlength="1" class="w-10 h-10 text-center font-bold text-lg border rounded-lg bg-amber-50" placeholder="?">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-300 flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold">3) 4 кг 205 г ... 4205 г</span>
+                                <input type="text" id="b4_c3" maxlength="1" class="w-10 h-10 text-center font-bold text-lg border rounded-lg bg-amber-50" placeholder="?">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-300 flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold">4) 5 ц 12 кг ... 502 кг</span>
+                                <input type="text" id="b4_c4" maxlength="1" class="w-10 h-10 text-center font-bold text-lg border rounded-lg bg-amber-50" placeholder="?">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-300 flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold">5) 2 год 5 хв ... 127 хв</span>
+                                <input type="text" id="b4_c5" maxlength="1" class="w-10 h-10 text-center font-bold text-lg border rounded-lg bg-amber-50" placeholder="?">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-300 flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold">6) 370 с ... 6 хв 10 с</span>
+                                <input type="text" id="b4_c6" maxlength="1" class="w-10 h-10 text-center font-bold text-lg border rounded-lg bg-amber-50" placeholder="?">
+                            </div>
+                        </div>
+                        <button onclick="checkCompareBlock()" class="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 rounded-xl text-sm shadow transition">
+                            ✅ Перевірити порівняння
+                        </button>
+                    </div>
+                `;
+            } else if (currentBlock === 5) {
+                // Блок 5: Осінні задачі
+                html = `
+                    <div class="space-y-4">
+                        <div class="bg-orange-100 border-l-4 border-orange-600 p-3 rounded-r-2xl">
+                            <h4 class="font-bold text-orange-950 text-sm mb-0.5">Блок 5: Осінні задачі про врожай (Завдання 61, 72)</h4>
+                            <p class="text-xs text-orange-900">Розв'язуй задачі та записуй у великому полі 12×12 з гарбузовим пером 🍂.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Задача 1 -->
+                            <div class="bg-white p-4 rounded-2xl border-2 border-orange-300 shadow-sm space-y-2 relative">
+                                <button onclick="openZoom('Задача 61', 'Маса 6 мішків по 50 кг у центнерах', 'b5_q1')" class="absolute top-3 right-3 bg-orange-100 text-orange-900 p-1.5 rounded-xl text-xs font-bold shadow">🔍 На весь екран</button>
+                                <h5 class="font-bold text-sm text-slate-800">Задача 61: Маса мішка з картоплею 50 кг.</h5>
+                                <p class="text-xs text-slate-600">Знайди масу 6 таких мішків у центнерах (ц):</p>
+                                <input type="number" id="b5_q1" class="w-full p-2 rounded-xl border border-slate-300 font-bold text-center bg-orange-50/30 text-sm" placeholder="Відповідь у центнерах">
+                                ${renderGridNotebook('canvas_b5_1', 'Осінній зошит З.1')}
+                                <button onclick="checkProblem(1)" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-2 rounded-xl text-xs shadow">Перевірити задачу 1</button>
+                            </div>
+                            <!-- Задача 2 -->
+                            <div class="bg-white p-4 rounded-2xl border-2 border-orange-300 shadow-sm space-y-2 relative">
+                                <button onclick="openZoom('Задача 72', 'Марко та Олеся чистять картоплю', 'b5_q2')" class="absolute top-3 right-3 bg-orange-100 text-orange-900 p-1.5 rounded-xl text-xs font-bold shadow">🔍 На весь екран</button>
+                                <h5 class="font-bold text-sm text-slate-800">Задача 72: За 20 хв почистили 23 картоплини.</h5>
+                                <p class="text-xs text-slate-600">Скільки картоплин вони почистять за 1 годину?</p>
+                                <input type="number" id="b5_q2" class="w-full p-2 rounded-xl border border-slate-300 font-bold text-center bg-orange-50/30 text-sm" placeholder="Відповідь (шт)">
+                                ${renderGridNotebook('canvas_b5_2', 'Осінній зошит З.2')}
+                                <button onclick="checkProblem(2)" class="w-full bg-orange-700 hover:bg-orange-800 text-white font-bold py-2 rounded-xl text-xs shadow">Перевірити задачу 2</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function checkSubTask1() {
+            const q1 = parseInt(document.getElementById('b1_q1').value);
+            const q2 = parseInt(document.getElementById('b1_q2').value);
+            const q3 = parseInt(document.getElementById('b1_q3').value);
+            const q4 = parseInt(document.getElementById('b1_q4').value);
+            const q5 = parseInt(document.getElementById('b1_q5').value);
+            const q6 = parseInt(document.getElementById('b1_q6').value);
+
+            if (q1 === 3 && q2 === 6 && q3 === 4 && q4 === 7 && q5 === 5 && q6 === 2) {
+                score += 10;
+                document.getElementById('score-val').innerText = score;
+                showModal("🎃 Розряди впорядковано!", "Чудово! Ліло перевірила число 745 632 — усе правильно!");
+            } else {
+                showModal("🍂 Уважніше!", "Десь у розрядах є помилка. Перевір цифри числа.");
+            }
+        }
+
+        function checkSubTask2() {
+            const pPrev = parseInt(document.getElementById('b1_prev').value);
+            const pNext = parseInt(document.getElementById('b1_next').value);
+
+            if (pPrev === 49999 && pNext === 50001) {
+                score += 10;
+                document.getElementById('score-val').innerText = score;
+                showModal("👽 Сусіди числа знайдені!", "Стіч задоволений! Число 50 000 під надійним наглядом.");
+            } else {
+                showModal("🥥 Перевір сусідів!", "Попереднє число на 1 менше, а наступне на 1 більше.");
+            }
+        }
+
+        function checkUnitsBlock() {
+            const v1 = parseInt(document.getElementById('b2_1').value);
+            const v2 = parseInt(document.getElementById('b2_2').value);
+            const v3 = parseInt(document.getElementById('b2_3').value);
+            const v4 = parseInt(document.getElementById('b2_4').value);
+            const v5 = parseInt(document.getElementById('b2_5').value);
+            const v6 = parseInt(document.getElementById('b2_6').value);
+            const v7 = parseInt(document.getElementById('b2_7').value);
+            const v8 = parseInt(document.getElementById('b2_8').value);
+
+            if (v1 === 53 && v2 === 203 && v3 === 4012 && v4 === 1215 && v5 === 718 && v6 === 9037 && v7 === 130 && v8 === 123) {
+                score += 20;
+                document.getElementById('score-val').innerText = score;
+                showModal("🌾 Усі величини переведено ідеально!", "Врожай пораховано безпомилково!");
+            } else {
+                showModal("🍂 Десь є похибка", "Перевірте співвідношення між одиницями вимірювання.");
+            }
+        }
+
+        function checkEx(num) {
+            let correct = false;
+            if (num === 1 && document.getElementById('b3_q1').value.replace(/\s+/g, '').includes('11кг420г')) correct = true;
+            if (num === 2 && document.getElementById('b3_q2').value.replace(/\s+/g, '').includes('2м81см')) correct = true;
+            if (num === 3 && document.getElementById('b3_q3').value.replace(/\s+/g, '').includes('805м')) correct = true;
+            if (num === 4 && document.getElementById('b3_q4').value.replace(/\s+/g, '').includes('9см2мм')) correct = true;
+
+            if (correct) {
+                score += 10;
+                document.getElementById('score-val').innerText = score;
+                showModal("🎃 Приклад обчислено правильно!", `Дію з величинами ${num} виконано чудово!`);
+            } else {
+                showModal("🍂 Перевір обчислення", `Зверни увагу на одиниці вимірювання у прикладі ${num}.`);
+            }
+        }
+
+        function checkCompareBlock() {
+            const c1 = document.getElementById('b4_c1').value.trim();
+            const c2 = document.getElementById('b4_c2').value.trim();
+            const c3 = document.getElementById('b4_c3').value.trim();
+            const c4 = document.getElementById('b4_c4').value.trim();
+            const c5 = document.getElementById('b4_c5').value.trim();
+            const c6 = document.getElementById('b4_c6').value.trim();
+
+            if (c1 === '<' && c2 === '>' && c3 === '=' && c4 === '>' && c5 === '=' && c6 === '=') {
+                score += 20;
+                document.getElementById('score-val').innerText = score;
+                showModal("🏆 Усі порівняння правильні!", "Ти чудово порівняв усі осінні величини!");
+            } else {
+                showModal("🍂 Перевір знаки", "Зведи величини до однакових одиниць і перевір знаки (<, >, =).");
+            }
+        }
+
+        function checkProblem(num) {
+            let correct = false;
+            if (num === 1 && parseInt(document.getElementById('b5_q1').value) === 3) correct = true;
+            if (num === 2 && parseInt(document.getElementById('b5_q2').value) === 69) correct = true;
+
+            if (correct) {
+                score += 15;
+                document.getElementById('score-val').innerText = score;
+                showModal("🌟 Задачу розв'язано бездоганно!", `Осінню задачу ${num} успішно підкорено!`);
+            } else {
+                showModal("🍂 Перевір розв'язок", `У задачі ${num} є помилка в обчисленнях.`);
+            }
+        }
+
+        function nextBlock() {
+            if (currentBlock < 5) {
+                currentBlock++;
+                renderBlock();
+                updateHeader();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                showModal("🏆 ВРОЖАЙ ЗБИРАНО!", `Вітаю! Твій фінальний результат: ${score} балів! Осінній табір Охани пишається тобою! 🎉`);
+            }
+        }
+
+        function prevBlock() {
+            if (currentBlock > 1) {
+                currentBlock--;
+                renderBlock();
+                updateHeader();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function showModal(title, text) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal').classList.add('flex');
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('flex');
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
